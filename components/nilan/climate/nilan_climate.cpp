@@ -58,7 +58,7 @@ void NilanClimate::control(const climate::ClimateCall& call) {
   {
     // The only valid fan mode that is not custom us "OFF"
     auto new_fan_mode = *call.get_fan_mode();
-    this->custom_fan_mode = nullptr;
+    this->custom_fan_mode_ = nullptr;
 
     ESP_LOGD(TAG, "Custom Fan mode set to: 0");
     fan_speed_number_->make_call().set_value(0).perform();
@@ -67,7 +67,7 @@ void NilanClimate::control(const climate::ClimateCall& call) {
   if (call.get_custom_fan_mode().has_value())
   {
     auto new_custom_fan_mode = *call.get_custom_fan_mode();
-    this->custom_fan_mode = new_custom_fan_mode.c_str();
+    this->custom_fan_mode_ = new_custom_fan_mode.c_str();
     this->fan_mode.reset();
     auto optional_nilan_fan_mode = parse_number<float>(new_custom_fan_mode);
     if(optional_nilan_fan_mode.has_value())
@@ -100,7 +100,7 @@ climate::ClimateTraits NilanClimate::traits() {
     climate::ClimateMode::CLIMATE_MODE_HEAT_COOL
    });
 
-  traits.add_supported_feature(climate::ClimateFeature::CLIMATE_FEATURE_CURRENT_TEMPERATURE);
+  traits.set_supports_current_temperature(true);
   traits.set_visual_temperature_step(1);
   traits.set_visual_min_temperature(5);
   traits.set_visual_max_temperature(30);
@@ -114,7 +114,7 @@ void NilanClimate::dump_config() {
 
 void NilanClimate::nilanfanspeed_to_fanmode(const int state)
 {
-  this->custom_fan_mode = nullptr;
+  this->custom_fan_mode_ = nullptr;
   this->fan_mode.reset();
 
   switch (state) {
@@ -122,7 +122,7 @@ void NilanClimate::nilanfanspeed_to_fanmode(const int state)
   case 2:
   case 3:
   case 4:
-    this->custom_fan_mode = esphome::to_string(state).c_str();
+    this->custom_fan_mode_ = esphome::to_string(state).c_str();
     break;
   case 0:
   default: 
